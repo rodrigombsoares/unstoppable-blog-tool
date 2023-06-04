@@ -1,0 +1,46 @@
+pragma ever-solidity >= 0.61.2;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+
+contract Writer {
+    uint256 static owner;
+    uint static _nonce;
+
+    string[] state;
+
+    event StateChange(string[] _state);
+
+    constructor() public {
+        tvm.accept();
+        string[] initialState;
+
+        setState(initialState);
+    }
+
+    function setState(string[] _state) private {
+        state = _state;
+
+        emit StateChange(_state);
+    }
+
+    function addPost(string post) public externalMsg {
+        require(msg.pubkey() == owner, 101);
+        tvm.accept();
+
+        string[] _state = state;
+        _state.push(post);
+        setState(_state);
+
+        emit StateChange(state);
+    }
+
+    function getDetails()
+        external
+        view
+    returns (
+        string[] _state
+    ) {
+        return state;
+    }
+}

@@ -1,18 +1,17 @@
 async function main() {
   const signer = (await locklift.keystore.getSigner("0"))!;
-  const { contract: sample, tx } = await locklift.factory.deployContract({
-    contract: "Sample",
+  const { contract: writer, tx } = await locklift.factory.deployContract({
+    contract: "Writer",
     publicKey: signer.publicKey,
     initParams: {
+      owner: `0x${signer.publicKey}`,
       _nonce: locklift.utils.getRandomNonce(),
     },
-    constructorParams: {
-      _state: 0,
-    },
-    value: locklift.utils.toNano(3),
+    constructorParams: {},
+    value: locklift.utils.toNano(1),
   });
 
-  console.log(`Sample deployed at: ${sample.address.toString()}`);
+  console.log(`Writer deployed at: ${writer.address.toString()}`);
 }
 
 main()

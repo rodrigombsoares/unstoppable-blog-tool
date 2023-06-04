@@ -1,16 +1,17 @@
 import { LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 declare global {
   const locklift: import("locklift").Locklift<FactorySource>;
 }
 
 const LOCAL_NETWORK_ENDPOINT = process.env.NETWORK_ENDPOINT || "http://localhost/graphql";
-const DEV_NET_NETWORK_ENDPOINT = process.env.DEV_NET_NETWORK_ENDPOINT || "https://devnet-sandbox.evercloud.dev/graphql";
 
-const VENOM_TESTNET_ENDPOINT = process.env.VENOM_TESTNET_ENDPOINT || "https://jrpc-devnet.venom.foundation/";
+const VENOM_TESTNET_ENDPOINT = process.env.VENOM_TESTNET_ENDPOINT || "https://jrpc-testnet.venom.foundation/rpc";
 const VENOM_TESTNET_TRACE_ENDPOINT =
-  process.env.VENOM_TESTNET_TRACE_ENDPOINT || "https://gql-devnet.venom.network/graphql";
+  process.env.VENOM_TESTNET_TRACE_ENDPOINT || "https://gql-testnet.venom.foundation/graphql";
 
 // Create your own link on https://dashboard.evercloud.dev/
 const MAIN_NET_NETWORK_ENDPOINT = process.env.MAIN_NET_NETWORK_ENDPOINT || "https://mainnet.evercloud.dev/XXX/graphql";
@@ -62,38 +63,13 @@ const config: LockliftConfig = {
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
-        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
-        amount: 20,
-      },
-    },
-    test: {
-      connection: {
-        id: 1,
-        type: "graphql",
-        group: "dev",
-        data: {
-          endpoints: [DEV_NET_NETWORK_ENDPOINT],
-          latencyDetectionInterval: 1000,
-          local: false,
-        },
-      },
-      giver: {
-        address: "0:0000000000000000000000000000000000000000000000000000000000000000",
-        key: "secret key",
-      },
-      tracing: {
-        endpoint: DEV_NET_NETWORK_ENDPOINT,
-      },
-      keys: {
-        // Use everdev to generate your phrase
-        // !!! Never commit it in your repos !!!
-        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
         amount: 20,
       },
     },
     venom_testnet: {
       connection: {
-        id: 1000,
+        id: 1,
         type: "jrpc",
         group: "dev",
         data: {
@@ -101,8 +77,8 @@ const config: LockliftConfig = {
         },
       },
       giver: {
-        address: "0:0000000000000000000000000000000000000000000000000000000000000000",
-        phrase: "phrase",
+        address: process.env.GIVER_ADDRESS as string,
+        phrase: process.env.GIVER_PHRASE as string,
         accountId: 0,
       },
       tracing: {
@@ -111,37 +87,10 @@ const config: LockliftConfig = {
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
-        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        phrase: process.env.GIVER_PHRASE as string,
         amount: 20,
       },
-    },
-    main: {
-      // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
-      connection: {
-        id: 1,
-        type: "graphql",
-        group: "main",
-        data: {
-          endpoints: [MAIN_NET_NETWORK_ENDPOINT],
-          latencyDetectionInterval: 1000,
-          local: false,
-        },
-      },
-      // This giver is default Wallet
-      giver: {
-        address: "0:0000000000000000000000000000000000000000000000000000000000000000",
-        key: "secret key",
-      },
-      tracing: {
-        endpoint: MAIN_NET_NETWORK_ENDPOINT,
-      },
-      keys: {
-        // Use everdev to generate your phrase
-        // !!! Never commit it in your repos !!!
-        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
-        amount: 20,
-      },
-    },
+    }
   },
   mocha: {
     timeout: 2000000,
