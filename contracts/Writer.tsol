@@ -2,14 +2,25 @@ pragma ever-solidity >= 0.61.2;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
+struct PostSuggestion {
+    string ipfsAddress;
+    uint128 amount;
+    address sender;
+}
 
 contract Writer {
-    uint256 static owner;
+    address static ownerAddr;
+    uint256 static ownerPubKey;
+    uint128 static minValue;
+    uint128 static tip;
+    uint128 static postKey;
     uint static _nonce;
 
     string[] state;
+    mapping(uint128 => PostSuggestion) postSuggestions;
 
     event StateChange(string[] _state);
+    event PostSuggested(uint128 _postKey, PostSuggestion _postSuggestion);
 
     constructor() public {
         tvm.accept();
@@ -25,7 +36,7 @@ contract Writer {
     }
 
     function addPost(string post) public externalMsg {
-        require(msg.pubkey() == owner, 101);
+        require(msg.pubkey() == ownerPubKey, 101);
         tvm.accept();
 
         string[] _state = state;
@@ -42,5 +53,53 @@ contract Writer {
         string[] _state
     ) {
         return state;
+    }
+
+    function suggestPost(string ipfsAddress) public internalMsg {
+        require(msg.value >= minValue, 102);
+        PostSuggestion ps = PostSuggestion(ipfsAddress, msg.value, msg.sender);
+
+        postSuggestions[postKey] = ps;
+        postKey += 1;
+
+        emit PostSuggested(postKey, ps);
+    }
+
+    function acceptPost(uint128 _postKey) public externalMsg {
+        require(msg.pubkey() == ownerPubKey, 101);
+        tvm.accept();
+
+        optional(PostSuggestion) ps = postSuggestions.fetch(_postKey);
+        require(ps.hasValue(), 404);
+        
+        PostSuggestion postSuggestion = ps.get();
+        addPost(postSuggestion.ipfsAddress);
+        ownerAddr.transfer(postSuggestion.amount);
+
+        delete postSuggestions[_postKey];
+    }
+
+    function rejectPost(uint128 _postKey) public externalMsg {
+        require(msg.pubkey() == ownerPubKey, 101);
+        tvm.accept();
+
+        optional(PostSuggestion) ps = postSuggestions.fetch(_postKey);
+        require(ps.hasValue(), 404);
+        
+        PostSuggestion postSuggestion = ps.get();
+
+        ownerAddr.transfer(tip);
+        postSuggestion.sender.transfer(postSuggestion.amount - tip);
+
+        delete postSuggestions[_postKey];
+    }
+
+    function getPostSuggestions()
+        external
+        view
+    returns (
+        mapping(uint128 => PostSuggestion) _postSuggestions
+    ) {
+        return postSuggestions;
     }
 }
