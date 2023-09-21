@@ -1,1 +1,2 @@
 *.tsol linguist-language=Solidity
+*.ts linguist-detectable=false
